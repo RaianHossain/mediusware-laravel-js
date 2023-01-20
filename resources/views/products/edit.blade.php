@@ -4,7 +4,9 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Edit Product</h1>
     </div>
-    <form action="">
+    <form action="{{ route('product.update', $product) }}" method="post">
+        @method('put')
+        @csrf
         <section>
             <div class="row">
                 <div class="col-md-6">
@@ -21,7 +23,8 @@
                                        id="product_name"
                                        required
                                        placeholder="Product Name"
-                                       class="form-control">
+                                       class="form-control"
+                                       value={{ $product->title }}>
                             </div>
                             <div class="form-group">
                                 <label for="product_sku">Product SKU</label>
@@ -29,14 +32,15 @@
                                        id="product_sku"
                                        required
                                        placeholder="Product Name"
-                                       class="form-control"></div>
+                                       class="form-control"
+                                       value={{ $product->sku }}></div>
                             <div class="form-group mb-0">
                                 <label for="product_description">Description</label>
                                 <textarea name="product_description"
                                           id="product_description"
                                           required
                                           rows="4"
-                                          class="form-control"></textarea>
+                                          class="form-control">{{ $product->description }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -58,6 +62,43 @@
                                 class="m-0 font-weight-bold text-primary">Variants</h6>
                         </div>
                         <div class="card-body pb-0" id="variant-sections">
+                            <!-- data population -->
+                            @php $currentIndex = 0; @endphp
+                            @foreach($variantsForProduct as $id => $values)
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="">Option</label>
+                                        <select id="select2-option-{{ $currentIndex }}" data-index="{{ $currentIndex }}" name="product_variant[{{ $currentIndex }}][option]" class="form-control custom-select select2 select2-option">
+                                            <option value="1" {{ $id == 1 ? 'selected' : '' }}>
+                                                Color
+                                            </option>
+                                            <option value="2" {{ $id == 2 ? 'selected' : '' }}>
+                                                Size
+                                            </option>
+                                            <option value="6" {{ $id == 6 ? 'selected' : '' }}>
+                                                Style
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="d-flex justify-content-between">
+                                            <span>Value</span>
+                                            <a href="#" class="remove-btn" data-index="{{ $currentIndex }}" onclick="removeVariant(event, this);">Remove</a>
+                                        </label>
+                                        <select id="select2-value-{{ $currentIndex }}" data-index="{{ $currentIndex }}" name="product_variant[{{ $currentIndex }}][value][]" class="select2 select2-value form-control custom-select" multiple="multiple">
+                                            @foreach($values as $value)
+                                                <option value="{{ $value }}">{{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            @php $currentIndex++; @endphp
+                            @endforeach
+                            <!-- data population -->
                         </div>
                         <div class="card-footer bg-white border-top-0" id="add-btn">
                             <div class="row d-flex justify-content-center">
@@ -80,6 +121,19 @@
                                     </tr>
                                     </thead>
                                     <tbody id="variant-previews">
+                                        @php $index=0; @endphp
+                                        @forelse($product->product_variant_prices as $product_variant_with_price)
+                                        <input type="hidden" name="product_preview[{{ $index }}][id]" value="{{ $product_variant_with_price['id'] }}">
+                                            <tr>
+                                                <td>
+                                                    <input type="text" name="product_preview[{{ $index }}][variant]" value="{{ $product_variant_with_price->product_variant_two_details ? strtoupper($product_variant_with_price->product_variant_two_details->variant) : '' }} {{ $product_variant_with_price->product_variant_two_details && $product_variant_with_price->product_variant_one_details ? '/ ' : '' }}{{ $product_variant_with_price->product_variant_one_details ? ucfirst($product_variant_with_price->product_variant_one_details->variant) : '' }} {{ $product_variant_with_price->product_variant_one_details && $product_variant_with_price->product_variant_three_details ? '/ ' : '' }}{{ $product_variant_with_price->product_variant_three_details ? $product_variant_with_price->product_variant_three_details->variant : '' }}">
+                                                
+                                                </td>
+                                                <td><input type="text" name="product_preview[{{ $index }}][price]" value="{{ $product_variant_with_price['price'] }}"></td>
+                                                <td><input type="text" name="product_preview[{{ $index }}][stock]" value="{{ $product_variant_with_price['stock'] }}"></td>
+                                            </tr>
+                                        @php $index++; @endphp
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
@@ -87,11 +141,16 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-lg btn-primary">Save</button>
-            <button type="button" class="btn btn-secondary btn-lg">Cancel</button>
+            <button type="submit" class="btn btn-lg btn-primary" style="color: black;">Save</button>
+            <button type="button" class="btn btn-secondary btn-lg" style="color: black;">Cancel</button>
         </section>
     </form>
+    <script>
+        var chec = document.getElementById('variant-previews');
+        console.log(chec);
+    </script>
 @endsection
+
 
 @push('page_js')
     <script type="text/javascript" src="{{ asset('js/product.js') }}"></script>

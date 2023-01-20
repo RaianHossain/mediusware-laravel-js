@@ -143,4 +143,3 @@ function removeVariant(event, element) {
 
     updateVariantPreview();
 }
-
